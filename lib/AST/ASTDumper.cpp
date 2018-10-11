@@ -2272,6 +2272,9 @@ void ASTDumper::VisitUnaryExprOrTypeTraitExpr(
   case UETT_SizeOf:
     OS << " sizeof";
     break;
+  case UETT_PreferredAlignOf:
+    OS << " __alignof";
+    break;
   case UETT_AlignOf:
     OS << " alignof";
     break;

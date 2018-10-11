@@ -5946,21 +5946,31 @@ bool PointerExprEvaluator::VisitCastExpr(const CastExpr *E) {
   return ExprEvaluatorBaseTy::VisitCastExpr(E);
 }
 
-static CharUnits GetAlignOfType(EvalInfo &Info, QualType T) {
+static CharUnits GetAlignOfType(EvalInfo &Info, QualType T, bool PreferredAlignOf) {
   // C++ [expr.alignof]p3:
   //     When alignof is applied to a reference type, the result is the
   //     alignment of the referenced type.
   if (const ReferenceType *Ref = T->getAs<ReferenceType>())
     T = Ref->getPointeeType();
 
-  // __alignof is defined to return the preferred alignment.
   if (T.getQualifiers().hasUnaligned())
     return CharUnits::One();
-  return Info.Ctx.toCharUnitsFromBits(
-    Info.Ctx.getPreferredTypeAlign(T.getTypePtr()));
+
+
+  const bool alignOfReturnsPreferred =
+    Info.Ctx.getLangOpts().getClangABICompat() <= LangOptions::ClangABI::Ver7;
+  // __alignof is defined to return the preferred alignment.
+  // before 8, clang returned the preferred alignment for alignof and _Alignof as well
+  if (PreferredAlignOf || alignOfReturnsPreferred)
+    return Info.Ctx.toCharUnitsFromBits(
+      Info.Ctx.getPreferredTypeAlign(T.getTypePtr()));
+  // alignof (C++) and _Alignof (C11) are defined to return the ABI alignment
+  // see https://bugs.llvm.org/show_bug.cgi?id=26547 for explanation
+  else
+    return Info.Ctx.getTypeAlignInChars(T.getTypePtr());
 }
 
-static CharUnits GetAlignOfExpr(EvalInfo &Info, const Expr *E) {
+static CharUnits GetAlignOfExpr(EvalInfo &Info, const Expr *E, bool PreferredAlignOf) {
   E = E->IgnoreParens();
 
   // The kinds of expressions that we have special-case logic here for
@@ -5977,7 +5987,7 @@ static CharUnits GetAlignOfExpr(EvalInfo &Info, const Expr *E) {
     return Info.Ctx.getDeclAlign(ME->getMemberDecl(),
                                  /*RefAsPointee*/true);
 
-  return GetAlignOfType(Info, E->getType());
+  return GetAlignOfType(Info, E->getType(), PreferredAlignOf);
 }
 
 // To be clear: this happily visits unsupported builtins. Better name welcomed.
@@ -6039,7 +6049,7 @@ bool PointerExprEvaluator::VisitBuiltinCallExpr(const CallExpr *E,
         BaseAlignment = Info.Ctx.getDeclAlign(VD);
       } else {
         BaseAlignment =
-          GetAlignOfExpr(Info, OffsetResult.Base.get<const Expr*>());
+          GetAlignOfExpr(Info, OffsetResult.Base.get<const Expr*>(), false);
       }
 
       if (BaseAlignment < Align) {
@@ -9357,12 +9367,14 @@ bool IntExprEvaluator::VisitBinaryOperator(const BinaryOperator *E) {
 /// a result as the expression's type.
 bool IntExprEvaluator::VisitUnaryExprOrTypeTraitExpr(
                                     const UnaryExprOrTypeTraitExpr *E) {
-  switch(E->getKind()) {
+  auto const kind = E->getKind();
+  switch(kind) {
+  case UETT_PreferredAlignOf:
   case UETT_AlignOf: {
     if (E->isArgumentType())
-      return Success(GetAlignOfType(Info, E->getArgumentType()), E);
+      return Success(GetAlignOfType(Info, E->getArgumentType(), kind == UETT_PreferredAlignOf), E);
     else
-      return Success(GetAlignOfExpr(Info, E->getArgumentExpr()), E);
+      return Success(GetAlignOfExpr(Info, E->getArgumentExpr(), kind == UETT_PreferredAlignOf), E);
   }
 
   case UETT_VecStep: {

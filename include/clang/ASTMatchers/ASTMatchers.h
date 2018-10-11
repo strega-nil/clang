@@ -2426,7 +2426,7 @@ AST_MATCHER_P(UnaryExprOrTypeTraitExpr, ofKind, UnaryExprOrTypeTrait, Kind) {
 inline internal::Matcher<Stmt> alignOfExpr(
     const internal::Matcher<UnaryExprOrTypeTraitExpr> &InnerMatcher) {
   return stmt(unaryExprOrTypeTraitExpr(allOf(
-      ofKind(UETT_AlignOf), InnerMatcher)));
+      anyOf(ofKind(UETT_AlignOf), ofKind(UETT_PreferredAlignOf)), InnerMatcher)));
 }
 
 /// Same as unaryExprOrTypeTraitExpr, but only matching
