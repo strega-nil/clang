@@ -279,8 +279,8 @@ public:
 /// Floating point control options
 class FPOptions {
 public:
-  FPOptions() : fp_contract(LangOptions::FPC_Off),
-                fenv_access(LangOptions::FEA_Off) {}
+  FPOptions()
+      : fp_contract(LangOptions::FPC_Off), fenv_access(LangOptions::FEA_Off) {}
 
   // Used for serializing.
   explicit FPOptions(unsigned I)
