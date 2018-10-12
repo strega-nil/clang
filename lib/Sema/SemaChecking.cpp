@@ -10314,7 +10314,7 @@ static void AnalyzeAssignment(Sema &S, BinaryOperator *E) {
   }
 
   AnalyzeImplicitConversions(S, E->getRHS(), E->getOperatorLoc());
-
+  
   // Diagnose implicitly sequentially-consistent atomic assignment.
   if (E->getLHS()->getType()->isAtomicType())
     S.Diag(E->getRHS()->getBeginLoc(), diag::warn_atomic_implicit_seq_cst);
