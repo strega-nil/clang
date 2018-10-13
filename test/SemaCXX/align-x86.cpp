@@ -1,10 +1,14 @@
 // RUN: %clang_cc1 -std=c++11 -triple i386-apple-darwin9 -fsyntax-only -verify %s
 // expected-no-diagnostics
 
-#include <complex>
-#include <cstddef>
+using size_t = decltype(sizeof(0));
 
-template <typename T, std::size_t ABI, std::size_t Preferred>
+struct complex_double {
+  double real;
+  double imag;
+};
+
+template <typename T, size_t ABI, size_t Preferred>
 struct check_alignment {
   using type = T;
   static type value;
@@ -18,7 +22,7 @@ struct check_alignment {
 template struct check_alignment<double, 4, 8>;
 template struct check_alignment<long long, 4, 8>;
 template struct check_alignment<unsigned long long, 4, 8>;
-template struct check_alignment<std::complex<double>, 4, 4>;
+template struct check_alignment<complex_double, 4, 4>;
 
 // PR6362
 struct __attribute__((packed))
@@ -28,7 +32,6 @@ packed_struct {
 template struct check_alignment<packed_struct, 1, 1>;
 static_assert(__alignof__(g_packedstruct.a) == 1, "__alignof__(packed_struct.member) != 1");
 
-typedef double arr3double[3];
 template struct check_alignment<double[3], 4, 8>;
 
 enum big_enum { x = 18446744073709551615ULL };
