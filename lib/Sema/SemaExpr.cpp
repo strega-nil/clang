@@ -3799,7 +3799,7 @@ bool Sema::CheckUnaryExprOrTypeTraitOperand(QualType ExprType,
   return false;
 }
 
-static bool CheckAlignOfExpr(Sema &S, Expr *E) {
+static bool CheckAlignOfExpr(Sema &S, Expr *E, UnaryExprOrTypeTrait ExprKind) {
   E = E->IgnoreParens();
 
   // Cannot know anything else if the expression is dependent.
@@ -3841,6 +3841,7 @@ static bool CheckAlignOfExpr(Sema &S, Expr *E) {
     // definition if we can find a member of it.
     if (!FD->getParent()->isCompleteDefinition()) {
       S.Diag(E->getExprLoc(), diag::err_alignof_member_of_incomplete_type)
+	<< ExprKind
         << E->getSourceRange();
       return true;
     }
@@ -3853,7 +3854,7 @@ static bool CheckAlignOfExpr(Sema &S, Expr *E) {
       return false;
   }
 
-  return S.CheckUnaryExprOrTypeTraitOperand(E, UETT_AlignOf);
+  return S.CheckUnaryExprOrTypeTraitOperand(E, ExprKind);
 }
 
 bool Sema::CheckVecStepExpr(Expr *E) {
@@ -4050,7 +4051,7 @@ Sema::CreateUnaryExprOrTypeTraitExpr(Expr *E, SourceLocation OpLoc,
   if (E->isTypeDependent()) {
     // Delay type-checking for type-dependent expressions.
   } else if (ExprKind == UETT_AlignOf || ExprKind == UETT_PreferredAlignOf) {
-    isInvalid = CheckAlignOfExpr(*this, E);
+    isInvalid = CheckAlignOfExpr(*this, E, ExprKind);
   } else if (ExprKind == UETT_VecStep) {
     isInvalid = CheckVecStepExpr(E);
   } else if (ExprKind == UETT_OpenMPRequiredSimdAlign) {

@@ -9412,6 +9412,7 @@ bool IntExprEvaluator::VisitUnaryExprOrTypeTraitExpr(
     return Success(Sizeof, E);
   }
   case UETT_OpenMPRequiredSimdAlign:
+    printf("hello I'm here\n");
     assert(E->isArgumentType());
     return Success(
         Info.Ctx.toCharUnitsFromBits(

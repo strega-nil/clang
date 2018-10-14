@@ -1,6 +1,8 @@
 // RUN: %clang_cc1 -std=c++11 -triple i386-apple-darwin9 -fsyntax-only -verify -fclang-abi-compat=7 %s
 // expected-no-diagnostics
 
+using size_t = decltype(sizeof(0));
+
 template <typename T, size_t Preferred>
 struct check_alignment {
   using type = T;

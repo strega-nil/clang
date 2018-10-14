@@ -27,7 +27,7 @@ typedef double arr3double[3];
 CHECK_ALIGNMENT(arr3double, g_arr3double, 4, 8);
 
 enum big_enum { x = 18446744073709551615ULL };
-CHECK_ALIGNMENT(big_enum, g_bigenum, 4, 8);
+CHECK_ALIGNMENT(enum big_enum, g_bigenum, 4, 8);
 
 // PR5637
 
