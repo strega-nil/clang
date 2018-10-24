@@ -5962,18 +5962,14 @@ static CharUnits GetAlignOfType(EvalInfo &Info, QualType T, UnaryExprOrTypeTrait
   // __alignof is defined to return the preferred alignment.
   // Before 8, clang returned the preferred alignment for alignof and _Alignof
   // as well.
-  /*
   if (ExprKind == UETT_PreferredAlignOf || AlignOfReturnsPreferred)
-  */
     return Info.Ctx.toCharUnitsFromBits(
       Info.Ctx.getPreferredTypeAlign(T.getTypePtr()));
   // alignof and _Alignof are defined to return the ABI alignment.
-  /*
   else if (ExprKind == UETT_AlignOf)
     return Info.Ctx.getTypeAlignInChars(T.getTypePtr());
   else
     llvm_unreachable("GetAlignOfType on a non-alignment ExprKind");
-    */
 }
 
 static CharUnits GetAlignOfExpr(EvalInfo &Info, const Expr *E, UnaryExprOrTypeTrait ExprKind) {
