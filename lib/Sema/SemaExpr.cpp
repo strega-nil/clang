@@ -3769,7 +3769,8 @@ bool Sema::CheckUnaryExprOrTypeTraitOperand(QualType ExprType,
   // C11 6.5.3.4/3, C++11 [expr.alignof]p3:
   //   When alignof or _Alignof is applied to an array type, the result
   //   is the alignment of the element type.
-  if (ExprKind == UETT_AlignOf || ExprKind == UETT_PreferredAlignOf || ExprKind == UETT_OpenMPRequiredSimdAlign)
+  if (ExprKind == UETT_AlignOf || ExprKind == UETT_PreferredAlignOf ||
+      ExprKind == UETT_OpenMPRequiredSimdAlign)
     ExprType = Context.getBaseElementType(ExprType);
 
   if (ExprKind == UETT_VecStep)
